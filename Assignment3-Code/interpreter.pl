@@ -136,17 +136,16 @@ evaluate(+ParseTree,+VariablesIn,-VariablesOut):-
 evaluate(block(Leftcurly, Statements, Rightcurly), VariablesIn, VariablesOut):-
 	evaluate(Statements, VariablesIn, StatementsOut),
 	VariablesOut is StatementsOut.
+evaluate(statements, VariablesIn, VariablesOut).
 evaluate(statements(Assignment, Statements), VariablesIn, VariablesOut):-
 	evaluate(Assignment, VariablesIn, AssignOut),
-	evaluate(Statements, VariablesIn, VariablesOut),
-	append(AssignOut, VariablesIn, VariablesOut).
-evaluate(statements(Assignment), VariablesIn, VariablesOut):-
-	evaluate(Assignment, VariablesIn, AssignOut),
-	append(AssignOut, VariablesIn, VariablesOut).
+	append([], [], []),
+	evaluate(Statements, VariablesIn, StatementsOut).
 evaluate(assignment(Ident,Assignop,Expr,Semicolon), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut is 0.
+	A = atom_concat(IdentOut,'=',ExprOut),
+	append(A , VariablesOut, VariablesOut).
 evaluate(expression(Term), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	VariablesOut is TermOut.
@@ -181,20 +180,14 @@ evaluate(factor(Leftparen, Expr, Rightparen), VariablesIn, VariablesOut):-
 	
 evaluate(ident(X), [], [X]).
 evaluate(int(X), [],[X]).
-evaluate(empty([]), [], []).
+evaluate(rightcurly(right_curly),[], []).
 /*evaluate(addop(add_op),[+]).
 evaluate(subop(sub_op),[-]).
 evaluate(multop(mult_op),[*]).
 evaluate(divop(div_op),[/]).
 evaluate(leftcurly(left_curly), [], []).
-evaluate(rightcurly(right_curly),['}']).
+evaluate(rightcurly(right_curly),[], []).
 evaluate(leftparen(left_paren),['(']).
 evaluate(rightparen(right_paren),[')']).
 evaluate(assignop(assign_op),['=']).
 evaluate(semicolon(semicolon),[';']).*/
-
-	
-	
-append([],Xs,Xs).
-append([X|Xs],Ys,[X|Zs]):-
-	append(Xs,Ys,Zs).
