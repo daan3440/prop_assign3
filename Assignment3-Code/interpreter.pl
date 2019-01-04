@@ -133,7 +133,7 @@ evaluate(+ParseTree,+VariablesIn,-VariablesOut):-
 
 /*evaluate(ParseTree,VariablesIn,VariablesOut):-
 	evaluate(ParseTree, VariablesIn, VariablesOut).*/
-evaluate(block(Leftcurly, Statements, Rightcurly), VariablesIn, VariablesOut):-
+evaluate(block(_Leftcurly, Statements, _Rightcurly), VariablesIn, VariablesOut):-
 	evaluate(Statements, VariablesIn, StatementsOut),
 	VariablesOut = StatementsOut.
 evaluate(statements, VariablesIn, VariablesOut):- VariablesOut = VariablesIn. 
@@ -142,10 +142,11 @@ evaluate(statements(Assignment, Statements), VariablesIn, VariablesOut):-
 	append(VariablesIn,AssignOut, NVariablesIn),
 	evaluate(Statements, NVariablesIn, StatementsOut),
 	VariablesOut = StatementsOut.
-evaluate(assignment(Ident,Assignop,Expr,Semicolon), VariablesIn, VariablesOut):-
+evaluate(assignment(Ident,_Assignop,Expr,_Semicolon), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut = [IdentOut = ExprOut].
+	Value is ExprOut,
+	VariablesOut = [IdentOut = Value].
 evaluate(expression(Term), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	VariablesOut = TermOut.
@@ -153,12 +154,17 @@ evaluate(expression(Term, Addop, Expr), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	Addop==add_op,
 	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut is TermOut + ExprOut.
+	VariablesOut = TermOut + ExprOut.
 evaluate(expression(Term, Subop, Expr), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	Subop==sub_op,
 	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut is TermOut - ExprOut.
+	VariablesOut = TermOut - ExprOut.
+	/*number_to_chars(TermOut, Number),
+	atom_concat(Number, SubOp, Temp),
+	atom_concat(Temp, ExprOut, VariablesOut).
+	Temp = ['-' | ExprOut],
+	VariablesOut = [TermOut | Temp].*/
 evaluate(term(Factor), VariablesIn, VariablesOut):-
 	evaluate(Factor, VariablesIn, FactorOut),
 	VariablesOut = FactorOut.
@@ -166,33 +172,34 @@ evaluate(term(Factor, Multop, Term), VariablesIn, VariablesOut):-
 	evaluate(Factor, VariablesIn, FactorOut),
 	Multop==mult_op,
 	evaluate(Term, VariablesIn, TermOut),
-	VariablesOut is FactorOut * TermOut.
+	VariablesOut = FactorOut * TermOut.
 evaluate(term(Factor, Divop, Term), VariablesIn, VariablesOut):-
 	evaluate(Factor, VariablesIn, FactorOut),
 	Divop==div_op,
 	evaluate(Term, VariablesIn, TermOut),
-	VariablesOut is FactorOut / TermOut.
+	VariablesOut = FactorOut / TermOut.
 evaluate(factor(Ident), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	atom(IdentOut),
 	member(IdentOut=X, VariablesIn),
-	VariablesOut is X.
+	VariablesOut = X.
 evaluate(factor(Ident), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	atom(IdentOut),
-	\+ member(IdentOut=X, VariablesIn),
-	VariablesOut is 0.
+	\+ member(IdentOut=_X, VariablesIn),
+	VariablesOut = 0.
 evaluate(factor(Int), VariablesIn, VariablesOut):-
 	evaluate(Int, VariablesIn, IntOut),
 	VariablesOut = IntOut.
-evaluate(factor(Leftparen, Expr, Rightparen), VariablesIn, VariablesOut):-
+evaluate(factor(_Leftparen, Expr, _Rightparen), VariablesIn, VariablesOut):-
 	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut = ExprOut.
+	VariablesOut = (ExprOut).
 	
 evaluate(ident(X), [], X).
-evaluate(ident(X), Ys, X).
+evaluate(ident(X), _Ys, X).
 evaluate(int(X), [], X ).
-evaluate(int(X), Ys, X ).
+evaluate(int(X), _Ys, X ).
 
-member(X,[X|Xs]).
-member(X,[Y|Ys]):- member(X,Ys).
+/*member(X,[X|Xs]).
+member(X,[Y|Ys]):- member(X,Ys).*/
+
