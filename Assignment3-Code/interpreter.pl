@@ -139,45 +139,40 @@ evaluate(block(_Leftcurly, Statements, _Rightcurly), VariablesIn, VariablesOut):
 evaluate(statements, VariablesIn, VariablesOut):- VariablesOut = VariablesIn. 
 evaluate(statements(Assignment, Statements), VariablesIn, VariablesOut):-
 	evaluate(Assignment, VariablesIn, AssignOut),
-	append(VariablesIn,AssignOut, NVariablesIn),
+	append(AssignOut, VariablesIn,NVariablesIn),
 	evaluate(Statements, NVariablesIn, StatementsOut),
 	VariablesOut = StatementsOut.
 evaluate(assignment(Ident,_Assignop,Expr,_Semicolon), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	evaluate(Expr, VariablesIn, ExprOut),
 	Value is ExprOut,
-	VariablesOut = [IdentOut = Value].
+	VariablesOut = [IdentOut = Value].	
 evaluate(expression(Term), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
-	VariablesOut = TermOut.
+	VariablesOut is TermOut.
 evaluate(expression(Term, Addop, Expr), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	Addop==add_op,
-	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut = TermOut + ExprOut.
+	evaluate(Expr, VariablesIn, ExprOut, TermOut, +),
+	VariablesOut is ExprOut.
 evaluate(expression(Term, Subop, Expr), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	Subop==sub_op,
-	evaluate(Expr, VariablesIn, ExprOut),
-	VariablesOut = TermOut - ExprOut.
-	/*number_to_chars(TermOut, Number),
-	atom_concat(Number, SubOp, Temp),
-	atom_concat(Temp, ExprOut, VariablesOut).
-	Temp = ['-' | ExprOut],
-	VariablesOut = [TermOut | Temp].*/
+	evaluate(Expr, VariablesIn, ExprOut, TermOut, -),
+	VariablesOut is ExprOut.
 evaluate(term(Factor), VariablesIn, VariablesOut):-
 	evaluate(Factor, VariablesIn, FactorOut),
-	VariablesOut = FactorOut.
+	VariablesOut is FactorOut.
 evaluate(term(Factor, Multop, Term), VariablesIn, VariablesOut):-
-	evaluate(Factor, VariablesIn, FactorOut),
 	Multop==mult_op,
-	evaluate(Term, VariablesIn, TermOut),
-	VariablesOut = FactorOut * TermOut.
-evaluate(term(Factor, Divop, Term), VariablesIn, VariablesOut):-
 	evaluate(Factor, VariablesIn, FactorOut),
+	evaluate(Term, VariablesIn, TermOut, FactorOut, *),
+	VariablesOut is TermOut.
+evaluate(term(Factor, Divop, Term), VariablesIn, VariablesOut):-
 	Divop==div_op,
-	evaluate(Term, VariablesIn, TermOut),
-	VariablesOut = FactorOut / TermOut.
+	evaluate(Factor, VariablesIn, FactorOut),
+	evaluate(Term, VariablesIn, TermOut, FactorOut, /),
+	VariablesOut is TermOut.
 evaluate(factor(Ident), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	atom(IdentOut),
@@ -199,6 +194,84 @@ evaluate(ident(X), [], X).
 evaluate(ident(X), _Ys, X).
 evaluate(int(X), [], X ).
 evaluate(int(X), _Ys, X ).
+	
+evaluate(expression(Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Operator == -,
+	evaluate(Term, VariablesIn, TermOut),
+	VariablesOut is Operand - TermOut.
+evaluate(expression(Term, Addop, Expr), VariablesIn, VariablesOut, Operand, Operator):-
+	Addop==add_op,
+	Operator == -,
+	evaluate(Term, VariablesIn, TermOut),
+	Temp is Operand - TermOut,
+	evaluate(Expr, VariablesIn, ExprOut, Temp, +),
+	VariablesOut is ExprOut.
+evaluate(expression(Term, Subop, Expr), VariablesIn, VariablesOut, Operand, Operator):-
+	Subop==sub_op,
+	Operator == -,
+	evaluate(Term, VariablesIn, TermOut),
+	Temp is Operand - TermOut,
+	evaluate(Expr, VariablesIn, ExprOut, Temp, -),
+	VariablesOut is ExprOut.
+evaluate(expression(Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Operator == +,
+	evaluate(Term, VariablesIn, TermOut),
+	VariablesOut is Operand + TermOut.
+evaluate(expression(Term, Addop, Expr), VariablesIn, VariablesOut, Operand, Operator):-
+	Addop==add_op,
+	Operator == +,
+	evaluate(Term, VariablesIn, TermOut),
+	Temp is Operand + TermOut,
+	evaluate(Expr, VariablesIn, ExprOut, Temp, +),
+	VariablesOut is ExprOut.
+evaluate(expression(Term, Subop, Expr), VariablesIn, VariablesOut, Operand, Operator):-
+	Subop==sub_op,
+	Operator == +,
+	evaluate(Term, VariablesIn, TermOut),
+	Temp is Operand + TermOut,
+	evaluate(Expr, VariablesIn, ExprOut, Temp, -),
+	VariablesOut is ExprOut.
+	
+evaluate(term(Factor), VariablesIn, VariablesOut, Operand, Operator):-
+	Operator == *,
+	evaluate(Factor, VariablesIn, FactorOut),
+	VariablesOut is Operand * FactorOut.
+evaluate(term(Factor, Multop, Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Multop==mult_op,
+	Operator == *,
+	evaluate(Factor, VariablesIn, FactorOut),
+	Temp is Operand * FactorOut,
+	evaluate(Term, VariablesIn, TermOut, Temp, *),
+	VariablesOut is TermOut.
+evaluate(term(Factor, Divop, Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Divop==div_op,
+	Operator == *,
+	evaluate(Factor, VariablesIn, FactorOut),
+	Temp is Operand * FactorOut,
+	evaluate(Term, VariablesIn, TermOut, Temp, /),
+	VariablesOut is TermOut.
+evaluate(term(Factor), VariablesIn, VariablesOut, Operand, Operator):-
+	Operator == /,
+	evaluate(Factor, VariablesIn, FactorOut),
+	VariablesOut is Operand / FactorOut.
+evaluate(term(Factor, Multop, Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Multop==mult_op,
+	Operator == /,
+	evaluate(Factor, VariablesIn, FactorOut),
+	Temp is Operand / FactorOut,
+	evaluate(Term, VariablesIn, TermOut, Temp, *),
+	VariablesOut is TermOut.
+evaluate(term(Factor, Divop, Term), VariablesIn, VariablesOut, Operand, Operator):-
+	Divop==div_op,
+	Operator == /,
+	evaluate(Factor, VariablesIn, FactorOut),
+	Temp is Operand / FactorOut,
+	evaluate(Term, VariablesIn, TermOut, Temp, /),
+	VariablesOut is TermOut.
+	
+
+
+
 
 /*member(X,[X|Xs]).
 member(X,[Y|Ys]):- member(X,Ys).*/
