@@ -8,20 +8,81 @@ block
 			expression
 				term
 					factor
-						int(3)
-				sub_op
+						int(1)
+					mult_op
+					term
+						factor
+							int(2)
+				add_op
 				expression
 					term
 						factor
-							int(1)
+							left_paren
+							expression
+								term
+									factor
+										int(3)
+								sub_op
+								expression
+									term
+										factor
+											int(4)
+							right_paren
+						div_op
+						term
+							factor
+								int(5)
+			semicolon
+		statements
+			assignment
+				ident(b)
+				assign_op
+				expression
+					term
+						factor
+							int(4)
 					sub_op
 					expression
 						term
 							factor
-								int(1)
-			semicolon
-		statements
+								int(3)
+						sub_op
+						expression
+							term
+								factor
+									ident(a)
+							add_op
+							expression
+								term
+									factor
+										int(6)
+									div_op
+									term
+										factor
+											int(5)
+										div_op
+										term
+											factor
+												int(2)
+				semicolon
+			statements
+				assignment
+					ident(c)
+					assign_op
+					expression
+						term
+							factor
+								ident(b)
+						add_op
+						expression
+							term
+								factor
+									ident(a)
+					semicolon
+				statements
 	right_curly
 
 EVALUATION:
-a = 3.0
+c = 1.6
+b = -0.2
+a = 1.8
