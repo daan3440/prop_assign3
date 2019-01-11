@@ -1,12 +1,12 @@
-/***
-A skeleton for Assignment 3 on PROP HT2018 at DSV/SU.
-Peter Idestam-Almquist, 2018-12-10.
-***/
-
 /*** 
 Grupp 49
 Daniel Andersson - daan3440@student.su.se
 Erik Lavfors - erla5605@student.su.se
+***/
+
+/***
+A skeleton for Assignment 3 on PROP HT2018 at DSV/SU.
+Peter Idestam-Almquist, 2018-12-10.
 ***/
 
 /* Loads the tokenizer. */
