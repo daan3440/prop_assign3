@@ -145,24 +145,14 @@ evaluate(block(_Leftcurly, Statements, _Rightcurly), VariablesIn, VariablesOut):
 evaluate(statements, VariablesIn, VariablesOut):- VariablesOut = VariablesIn. 
 evaluate(statements(Assignment, Statements), VariablesIn, VariablesOut):-
 	evaluate(Assignment, VariablesIn, AssignOut),
-	AssignOut = [Var, Val],
-	\+ member1(Var=_X, VariablesIn),
-	append1([Var = Val], VariablesIn,NVariablesIn),
-	evaluate(Statements, NVariablesIn, StatementsOut),
-	VariablesOut = StatementsOut.
-evaluate(statements(Assignment, Statements), VariablesIn, VariablesOut):-
-	evaluate(Assignment, VariablesIn, AssignOut),
-	AssignOut = [Var, Val],
-	member1(Var=_X, VariablesIn),
-	remove(Var=_X, VariablesIn, Zs),
-	append1([Var = Val], Zs,NVariablesIn),
-	evaluate(Statements, NVariablesIn, StatementsOut),
+	evaluate(Statements, AssignOut, StatementsOut),
 	VariablesOut = StatementsOut.
 evaluate(assignment(Ident,_Assignop,Expr,_Semicolon), VariablesIn, VariablesOut):-
 	evaluate(Ident, VariablesIn, IdentOut),
 	evaluate(Expr, VariablesIn, ExprOut),
 	Value is ExprOut,
-	VariablesOut = [IdentOut, Value].	
+	remove(IdentOut=_X, VariablesIn, Zs),
+	append1([IdentOut = Value], Zs, VariablesOut).
 evaluate(expression(Term), VariablesIn, VariablesOut):-
 	evaluate(Term, VariablesIn, TermOut),
 	VariablesOut is TermOut.
@@ -289,6 +279,7 @@ member1(X,[X|_Xs]).
 member1(X,[_Y|Ys]):- member1(X,Ys).
 append1([],Ys,Ys).
 append1([X|Xs],Ys,[X|Zs]):-append1(Xs,Ys,Zs).
+remove(_X,[],[]).
 remove(X,[X|Ys],Ys).
 remove(X, [Y|Ys],[Y|Zs]):-
 	remove(X, Ys,Zs).
